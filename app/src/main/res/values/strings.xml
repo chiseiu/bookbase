@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">bookbase</string>
+    <string name="isbn">ISBN番号を入力してください</string>
 </resources>

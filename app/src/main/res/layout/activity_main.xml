@@ -54,7 +54,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="16dp"
         android:layout_marginTop="16dp"
-        android:text="書籍を増加"
+        android:text="書籍を追加"
         android:onClick="onAddBookButtonClicked"
         android:textColor="#141413"
         android:backgroundTint="#E6ECFE"
