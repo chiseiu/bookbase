@@ -18,6 +18,10 @@ import java.util.HashMap;
 
 public class ResultActivity extends AppCompatActivity {
 
+    public static final String EXTRA_MODE = "extra_mode";
+    public static final int MODE_SEARCH = 1;
+    public static final int MODE_BOOKMARK = 2;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,20 +35,18 @@ public class ResultActivity extends AppCompatActivity {
             return insets;
         });
 
+        int mode = getIntent().getIntExtra(EXTRA_MODE, MODE_SEARCH);
+        ArrayList<HashMap<String, String>> listData;
+
+
         // データの設定
-        ArrayList<HashMap<String, String>> listData = new ArrayList<>();
-        listData.add(new HashMap<String, String>() {{
-            put("title", "Androidの基本");
-            put("author", "立命太郎");
-        }});
-        listData.add(new HashMap<String, String>() {{
-            put("title", "Androidの応用");
-            put("author", "立命次郎");
-        }});
-        listData.add(new HashMap<String, String>() {{
-            put("title", "Androidのススメ");
-            put("author", "立命三郎");
-        }});
+        if (mode == MODE_SEARCH) {
+            // 検索結果のデータを読み込む（例：ここは固定データとしてますが、実際には検索結果をロードする処理に置き換え）
+            listData = loadSearchResults();  // 検索結果を読み込む
+        } else {
+            // ブックマークされたデータを読み込む（例：ブックマークから実際のデータを取得）
+            listData = loadBookmarkedBooks();
+        }
 
         // アダプターの設定
         SimpleAdapter adapter = new SimpleAdapter(this,
@@ -65,5 +67,44 @@ public class ResultActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+    }
+
+    private ArrayList<HashMap<String, String>> loadSearchResults() {
+        ArrayList<HashMap<String, String>> searchResults = new ArrayList<>();
+
+        // 例：検索結果データ（固定データ）
+        searchResults.add(new HashMap<String, String>() {{
+            put("title", "Androidの基本");
+            put("author", "立命太郎");
+        }});
+        searchResults.add(new HashMap<String, String>() {{
+            put("title", "Androidの応用");
+            put("author", "立命次郎");
+        }});
+        searchResults.add(new HashMap<String, String>() {{
+            put("title", "Androidのススメ");
+            put("author", "立命三郎");
+        }});
+
+        // 実際の検索結果取得処理に置き換え可能
+        return searchResults;
+    }
+
+
+    private ArrayList<HashMap<String, String>> loadBookmarkedBooks() {
+        ArrayList<HashMap<String, String>> bookmarkedList = new ArrayList<>();
+
+        // ブックマークデータを取得してリストに追加
+        // 例としてデモデータを追加
+        bookmarkedList.add(new HashMap<String, String>() {{
+            put("title", "ブックマークされたAndroid入門");
+            put("author", "立命一郎");
+        }});
+        bookmarkedList.add(new HashMap<String, String>() {{
+            put("title", "ブックマークされたAndroidマスター");
+            put("author", "立命四郎");
+        }});
+
+        return bookmarkedList;
     }
 }

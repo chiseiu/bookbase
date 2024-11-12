@@ -26,10 +26,12 @@ public class MainActivity extends AppCompatActivity {
 
     public void onSearchButtonClicked(View view) {
         Intent intent = new Intent(this, ResultActivity.class);
+        intent.putExtra(ResultActivity.EXTRA_MODE, ResultActivity.MODE_SEARCH);
         startActivity(intent);
     }
     public void onBookmarkButtonClicked(View view) {
-        Intent intent = new Intent(this, BookmarkActivity.class);
+        Intent intent = new Intent(this, ResultActivity.class);
+        intent.putExtra(ResultActivity.EXTRA_MODE, ResultActivity.MODE_BOOKMARK);
         startActivity(intent);
     }
     public void onAddBookButtonClicked(View view) {
