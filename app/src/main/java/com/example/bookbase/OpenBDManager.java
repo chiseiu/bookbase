@@ -38,27 +38,46 @@ public class OpenBDManager {
 
         // summary フィールドを取得
         JSONObject summary = jsonArray.getJSONObject(0).getJSONObject("summary");
-        JSONObject ProductSupply = jsonArray.getJSONObject(0).getJSONObject("ProductSupply");
+
         // 各フィールドを抽出
         String title = summary.optString("title", "不明なタイトル");
         String rawAuthor = summary.optString("author", "不明な著者");
         String formattedAuthor = formatAuthor(rawAuthor); // 著者フォーマット処理
         String publisher = summary.optString("publisher", "不明な出版社");
         double price = 0.0;
+        try {
+            JSONObject onix = jsonArray.getJSONObject(0).getJSONObject("onix");
+            if (onix != null) {
+                JSONObject productSupply = onix.optJSONObject("ProductSupply");
+                if (productSupply != null) {
+                    JSONObject supplyDetail = productSupply.optJSONObject("SupplyDetail");
+                    if (supplyDetail != null) {
+                        JSONArray priceArray = supplyDetail.optJSONArray("Price");
+                        if (priceArray != null && priceArray.length() > 0) {
+                            JSONObject priceObject = priceArray.getJSONObject(0);
+                            price = priceObject.optDouble("PriceAmount", 0.0);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // 価格が見つからない場合はログに記録
+            System.err.println("価格情報の取得に失敗しました: " + e.getMessage());
+        }
 
         // Bookオブジェクトを返却
         return new Book(title, formattedAuthor, publisher, price, isbn);
     }
 
-    // 著者名フォーマット処理
     private static String formatAuthor(String rawAuthor) {
-        // "紀平,拓男,1979- 春日,伸弥,1980-" のような文字列をフォーマット
+        // "稲盛,和夫,1932-2022" のような文字列をフォーマット
         String[] authors = rawAuthor.split("\\s+"); // スペースで分割
         StringBuilder formattedAuthors = new StringBuilder();
 
         for (String author : authors) {
-            // 誕生年などの情報（例: ",1979-"）を削除
-            author = author.replaceAll(",\\d{4}-", "");
+            // 誕生年や死亡年（例: ",1932-2022"）を削除
+            author = author.replaceAll(",\\d{4}(-\\d{4})?", ""); // ",1932-2022" を削除
+            author = author.replaceAll("-", "");
             // 名前の間にスペースを追加
             author = author.replace(",", " ");
 
@@ -71,4 +90,5 @@ public class OpenBDManager {
 
         return formattedAuthors.toString();
     }
+
 }
