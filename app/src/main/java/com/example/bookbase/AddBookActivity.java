@@ -2,7 +2,10 @@ package com.example.bookbase;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -23,7 +26,45 @@ public class AddBookActivity extends AppCompatActivity {
             return insets;
         });
     }
-    public void onaddbookButtonClicked(View view) {
+    public void onAddBookButtonClicked(View view) {
 
+        EditText keywordText = findViewById(R.id.isbnAddText);
+        String isbn = keywordText.getText().toString();
+
+        if (isbn.isEmpty()) {
+            BookDialog.showErrorDialog(this, "ISBN を入力してください");
+            return;
+        }
+
+        // ISBN のバリデーション
+        if (!BookManager.isValidIsbn(isbn)) {
+            BookDialog.showErrorDialog(this, "無効なISBNです");
+            return;
+        }
+
+
+        // 書籍がすでに存在するか確認
+        if (BookChecker.isBookInLibrary(this, isbn)) {
+            // すでに存在する場合は何もせず終了
+            Log.d("BookManager", "書籍がすでに存在します: " + isbn);
+            return;
+        }
+
+        // 書籍情報を取得する
+        new Thread(() -> {
+            try {
+                // 書籍情報を取得
+                Book book = OpenBDManager.fetchBookFromOpenBD(isbn);
+
+                // メインスレッドで確認ダイアログを表示
+                runOnUiThread(() -> BookDialog.showBookConfirmationDialog(this, book, () -> {
+                    // ユーザーが「はい」を選んだ場合に書籍を追加
+                    BookManager.addBookToUserLibrary(this, book);
+                }));
+            } catch (Exception e) {
+                // エラーをキャッチしてダイアログで表示
+                runOnUiThread(() -> BookDialog.showErrorDialog(this, "書籍情報の取得に失敗しました: " + e.getMessage()));
+            }
+        }).start();
     }
 }
