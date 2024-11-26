@@ -57,7 +57,7 @@
         android:layout_marginHorizontal="16dp"
         android:layout_marginTop="16dp"
         android:text="書籍一覧"
-        android:onClick="onAllbookButtonClicked"
+        android:onClick="onAllookButtonClicked"
         android:textColor="#141413"
         android:backgroundTint="#E6ECFE"
         app:layout_constraintTop_toBottomOf="@id/editBookListButton"

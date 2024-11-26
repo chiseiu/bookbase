@@ -8,6 +8,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,20 +22,11 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class ResultActivity extends AppCompatActivity {
 
-    private class BookInfo extends Book {
-        int ID;
 
-        public int getID() {
-            return ID;
-        }
-
-        public void setID(int ID) {
-            this.ID = ID;
-        }
-    }
 
     @Override
 
@@ -51,78 +43,76 @@ public class ResultActivity extends AppCompatActivity {
         ListView listView = findViewById(R.id.listView);
         TextView emptyText = findViewById(R.id.emptyText);
 
+        List<BookInfo> bookInfoList = new ArrayList<>();
+
 
         // データリストの初期化
-        final ArrayList<HashMap<String, String>> listData = new ArrayList<>();
-        final ArrayList<BookInfo> bookList = new ArrayList<>();
+        //final ArrayList<HashMap<String, String>> listData = new ArrayList<>();
+        //final ArrayList<BookInfo> bookList = new ArrayList<>();
 
         // SearchTaskのインスタンスを作成
         SearchTask task = new SearchTask();
         task.setListener(new SearchTask.Listener() {
             @Override
-            public void onSuccess(String result) {
-                Log.d("ResultActivity", "サーバーからのレスポンス: " + result);
+            public void onSuccess(List<Book> result) {
+                Log.d("ResultActivity", "Success: " + result.size() + " books");
 
-                try {
-                    // JSONデータを解析
-                    JSONArray jsonArray = new JSONArray(result);
-                    Log.d("ResultActivity", "JSONデータの数: " + jsonArray.length());
-
-                    for (int i = 0; i < jsonArray.length(); i++) {
-                        JSONObject jsonObject = jsonArray.getJSONObject(i);
-                        Log.d("ResultActivity", "JSONオブジェクト: " + jsonObject.toString());
-
-                        // JSONからBookInfoオブジェクトを作成
-                        BookInfo bookInfo = new BookInfo();
-                        bookInfo.ID = jsonObject.getInt("ID");
-                        bookInfo.title = jsonObject.getString("TITLE");
-                        bookInfo.author = jsonObject.getString("AUTHOR");
-                        bookInfo.publisher = jsonObject.getString("PUBLISHER");
-                        bookInfo.price = jsonObject.getInt("PRICE");
-                        bookInfo.isbn = jsonObject.getString("ISBN");
-
-                        // データリストに追加
-                        bookList.add(bookInfo);
-                        listData.add(new HashMap<String, String>() {{
-                            put("title", bookInfo.getTitle());
-                            put("author", bookInfo.getAuthor());
-                        }});
-                    }
-
-                    Log.d("ResultActivity", "bookListのサイズ: " + bookList.size());
-                    Log.d("ResultActivity", "listDataのサイズ: " + listData.size());
-
-                    // ListViewにデータをバインド
-                    SimpleAdapter adapter = new SimpleAdapter(
-                            ResultActivity.this,
-                            listData,
-                            android.R.layout.simple_list_item_2,
-                            new String[]{"title", "author"},
-                            new int[]{android.R.id.text1, android.R.id.text2}
-                    );
-                    listView.setAdapter(adapter);
-
-                    Log.d("ResultActivity", "アダプタのアイテム数: " + listView.getAdapter().getCount());
-
-                    // ListViewのアイテムクリック時の処理
-                    listView.setOnItemClickListener((parent, view, position, id) -> {
-                        BookInfo bookInfo = bookList.get(position);
-                        Log.d("ResultActivity", "クリックされた本: " + bookInfo.toString());
-
-                        // BookInfoActivityに遷移
-                        Intent intent = new Intent(ResultActivity.this, BookInfoActivity.class);
-                        intent.putExtra("title", bookInfo.getTitle());
-                        intent.putExtra("author", bookInfo.getAuthor());
-                        intent.putExtra("publisher", bookInfo.getPublisher());
-                        intent.putExtra("price", bookInfo.getPrice());
-                        intent.putExtra("isbn", bookInfo.getIsbn());
-                        startActivity(intent);
-                    });
-                } catch (JSONException e) {
-                    Log.e("ResultActivity", "JSON解析エラー: ", e);
+                bookInfoList.clear();
+                for (int i = 0; i < result.size(); i++) {
+                    Book book = result.get(i);
+                    BookInfo bookInfo = new BookInfo();
+                    bookInfo.setId(i + 1);
+                    bookInfo.setTitle(book.getTitle());
+                    bookInfo.setAuthor(book.getAuthor());
+                    bookInfo.setPublisher(book.getPublisher());
+                    bookInfo.setPrice(book.getPrice());
+                    bookInfo.setIsbn(book.getIsbn());
+                    bookInfoList.add(bookInfo);
                 }
+                // 更新 ListView
+                List<HashMap<String, String>> listData = new ArrayList<>();
+                for (Book book : result) {
+                    HashMap<String, String> map = new HashMap<>();
+                    map.put("title", book.getTitle());
+                    map.put("author", book.getAuthor());
+                    listData.add(map);
+                }
+
+                SimpleAdapter adapter = new SimpleAdapter(
+                        ResultActivity.this,
+                        listData,
+                        android.R.layout.simple_list_item_2,
+                        new String[]{"title", "author"},
+                        new int[]{android.R.id.text1, android.R.id.text2}
+                );
+
+                ListView listView = findViewById(R.id.listView);
+                listView.setAdapter(adapter);
+
+                listView.setOnItemClickListener((parent, view, position, id) -> {
+                    BookInfo selectedBookInfo = bookInfoList.get(position);
+
+                    Intent detailIntent = new Intent(ResultActivity.this, BookInfoActivity.class);
+                    detailIntent.putExtra("id", selectedBookInfo.getId());
+                    detailIntent.putExtra("title", selectedBookInfo.getTitle());
+                    detailIntent.putExtra("author", selectedBookInfo.getAuthor());
+                    detailIntent.putExtra("publisher", selectedBookInfo.getPublisher());
+                    detailIntent.putExtra("price", selectedBookInfo.getPrice());
+                    detailIntent.putExtra("isbn", selectedBookInfo.getIsbn());
+
+                    startActivity(detailIntent);
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e("ResultActivity", "Error: " + error);
+                Toast.makeText(ResultActivity.this, error, Toast.LENGTH_SHORT).show();
             }
         });
+
+        //task.execute("Android"); // 测试查询
+
         if (emptyText != null) {
             listView.setEmptyView(emptyText); // データがない場合の表示を設定
         }

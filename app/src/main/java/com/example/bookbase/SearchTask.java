@@ -1,7 +1,12 @@
 package com.example.bookbase;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -9,90 +14,107 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
-public class SearchTask extends AsyncTask<String, Void, String> {
+public class SearchTask extends AsyncTask<String, Void, List<Book>> {
     private Listener listener;
 
-    @Override
-    protected String doInBackground(String... params) {
-        Log.d("SearchTask", "doInBackgroundが呼び出されました");
+    public interface Listener {
+        void onSuccess(List<Book> result);
+        void onError(String error);
+    }
 
-        String result = "[]"; // 空のJSONを初期値として設定
+    public void setListener(Listener listener) {
+        this.listener = listener;
+    }
+
+    @Override
+    protected List<Book> doInBackground(String... params) {
+        List<Book> books = new ArrayList<>();
+        String query = params[0].trim();
         HttpURLConnection urlConnection = null;
+
         try {
-            // URLを設定
+            // 1. 设置 URL
             URL url = new URL("http://172.23.100.41/cgi-bin/saproglab/booksearch_json.py");
             urlConnection = (HttpURLConnection) url.openConnection();
 
-            // HTTPメソッドをPOSTに設定
+            // 2. 设置 POST 请求属性
             urlConnection.setRequestMethod("POST");
             urlConnection.setDoOutput(true);
             urlConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
 
-            // リクエストボディを作成
-            String query = "query=" + params[0]; // 例: "query=Android"
-            Log.d("SearchTask", "送信したクエリ: " + query);
+            // 3. 发送请求
+            String body = "query=" + query;
+            Log.d("SearchTask", "发送的查询: " + body);
 
-            // リクエストを送信
             try (OutputStream out = urlConnection.getOutputStream()) {
-                out.write(query.getBytes("UTF-8"));
+                out.write(body.getBytes("UTF-8"));
                 out.flush();
             }
 
-            // レスポンスコードを確認
+            // 4. 检查响应代码
             int responseCode = urlConnection.getResponseCode();
-            Log.d("SearchTask", "レスポンスコード: " + responseCode);
-
-            if (responseCode == HttpURLConnection.HTTP_OK) { // HTTPステータス200の場合
-                // サーバーからのレスポンスを読み取る
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                // 5. 读取响应
                 try (InputStream in = urlConnection.getInputStream();
                      BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"))) {
-
-                    StringBuilder buffer = new StringBuilder();
+                    StringBuilder responseBuilder = new StringBuilder();
                     String line;
                     while ((line = reader.readLine()) != null) {
-                        buffer.append(line);
+                        responseBuilder.append(line);
                     }
-                    result = buffer.toString();
-                    Log.d("SearchTask", "サーバーからのレスポンス: " + result);
+
+                    // 6. 解析 JSON 响应
+                    String jsonResponse = responseBuilder.toString();
+                    Log.d("SearchTask", "响应数据: " + jsonResponse);
+                    books = parseJsonResponse(jsonResponse);
                 }
             } else {
-                Log.e("SearchTask", "HTTPエラー: レスポンスコード " + responseCode);
+                Log.e("SearchTask", "HTTP 错误: 响应代码 " + responseCode);
+                throw new Exception("HTTP 错误: 响应代码 " + responseCode);
             }
         } catch (Exception e) {
-            Log.e("SearchTask", "通信エラーが発生しました: " + e.getMessage(), e);
+            Log.e("SearchTask", "通信错误: " + e.getMessage(), e);
         } finally {
             if (urlConnection != null) {
                 urlConnection.disconnect();
             }
         }
 
-        return result;
+        return books;
     }
 
     @Override
-    protected void onPostExecute(String result) {
-        super.onPostExecute(result);
-
-        // サーバーからのレスポンスをリスナーに通知
+    protected void onPostExecute(List<Book> result) {
         if (listener != null) {
             if (result != null && !result.isEmpty()) {
-                Log.d("SearchTask", "onPostExecuteが正常に呼び出されました: " + result);
                 listener.onSuccess(result);
             } else {
-                Log.e("SearchTask", "結果が空です");
-                listener.onSuccess("[]"); // 空データを通知
+                listener.onError("没有找到结果");
             }
         }
     }
 
-    // リスナーを設定するメソッド
-    void setListener(Listener listener) {
-        this.listener = listener;
-    }
+    // 解析 JSON 响应为书籍列表
+    private List<Book> parseJsonResponse(String jsonResponse) throws JSONException {
+        List<Book> books = new ArrayList<>();
+        JSONArray jsonArray = new JSONArray(jsonResponse);
 
-    // リスナーインタフェース
-    interface Listener {
-        void onSuccess(String result);
+        for (int i = 0; i < jsonArray.length(); i++) {
+            JSONObject jsonObject = jsonArray.getJSONObject(i);
+
+            Book book = new Book();
+            book.setTitle(jsonObject.getString("TITLE"));
+            book.setAuthor(jsonObject.getString("AUTHOR"));
+            book.setPublisher(jsonObject.getString("PUBLISHER"));
+            book.setPrice(jsonObject.getInt("PRICE"));
+            book.setIsbn(jsonObject.getString("ISBN"));
+
+            books.add(book);
+        }
+
+        return books;
     }
 }
