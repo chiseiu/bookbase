@@ -44,7 +44,7 @@ public class OpenBDManager {
         String rawAuthor = summary.optString("author", "不明な著者");
         String formattedAuthor = formatAuthor(rawAuthor); // 著者フォーマット処理
         String publisher = summary.optString("publisher", "不明な出版社");
-        double price = 0.0;
+        int price = 0;
         try {
             JSONObject onix = jsonArray.getJSONObject(0).getJSONObject("onix");
             if (onix != null) {
@@ -55,7 +55,7 @@ public class OpenBDManager {
                         JSONArray priceArray = supplyDetail.optJSONArray("Price");
                         if (priceArray != null && priceArray.length() > 0) {
                             JSONObject priceObject = priceArray.getJSONObject(0);
-                            price = priceObject.optDouble("PriceAmount", 0.0);
+                            price = priceObject.optInt("PriceAmount", 0);
                         }
                     }
                 }

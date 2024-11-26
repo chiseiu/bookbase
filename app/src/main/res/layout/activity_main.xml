@@ -34,19 +34,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <Button
-        android:id="@+id/bookmarkButton"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="16dp"
-        android:onClick="onBookmarkButtonClicked"
-        android:text="ブックマーク"
-        android:textColor="#141413"
-        android:backgroundTint="#E6ECFE"
-        app:layout_constraintTop_toBottomOf="@id/searchButton"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+
 
     <Button
         android:id="@+id/editBookListButton"
@@ -58,7 +46,21 @@
         android:onClick="onAddBookButtonClicked"
         android:textColor="#141413"
         android:backgroundTint="#E6ECFE"
-        app:layout_constraintTop_toBottomOf="@id/bookmarkButton"
+        app:layout_constraintTop_toBottomOf="@id/searchButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <Button
+        android:id="@+id/AllBookListButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="16dp"
+        android:text="書籍一覧"
+        android:onClick="onAllbookButtonClicked"
+        android:textColor="#141413"
+        android:backgroundTint="#E6ECFE"
+        app:layout_constraintTop_toBottomOf="@id/editBookListButton"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 

@@ -2,10 +2,12 @@ package com.example.bookbase;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,98 +15,122 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class ResultActivity extends AppCompatActivity {
 
-    public static final String EXTRA_MODE = "extra_mode";
-    public static final int MODE_SEARCH = 1;
-    public static final int MODE_BOOKMARK = 2;
+    private class BookInfo extends Book {
+        int ID;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_result);
-
-        // ウィンドウインセットの適用
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
-
-        int mode = getIntent().getIntExtra(EXTRA_MODE, MODE_SEARCH);
-        ArrayList<HashMap<String, String>> listData;
-
-
-        // データの設定
-        if (mode == MODE_SEARCH) {
-            // 検索結果のデータを読み込む（例：ここは固定データとしてますが、実際には検索結果をロードする処理に置き換え）
-            listData = loadSearchResults();  // 検索結果を読み込む
-        } else {
-            // ブックマークされたデータを読み込む（例：ブックマークから実際のデータを取得）
-            listData = loadBookmarkedBooks();
+        public int getID() {
+            return ID;
         }
 
-        // アダプターの設定
-        SimpleAdapter adapter = new SimpleAdapter(this,
-                listData,   // ListViewに表示するデータ
-                android.R.layout.simple_list_item_2, // ListViewで使用するレイアウト（2つのテキスト）
-                new String[]{"title", "author"},     // 表示するHashMapのキー
-                new int[]{android.R.id.text1, android.R.id.text2} // データを表示するID
-        );
+        public void setID(int ID) {
+            this.ID = ID;
+        }
+    }
 
+    @Override
+
+    protected void onCreate(Bundle savedInstanceState) {
+
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_result);
+
+        // 前の画面からクエリを取得
+        Intent intent = getIntent();
+        String query = intent.getStringExtra("QUERY");
+
+        // ListViewと空データ用TextViewを取得
         ListView listView = findViewById(R.id.listView);
-        listView.setAdapter(adapter);
+        TextView emptyText = findViewById(R.id.emptyText);
 
-        // アイテムクリックリスナーの設定
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+        // データリストの初期化
+        final ArrayList<HashMap<String, String>> listData = new ArrayList<>();
+        final ArrayList<BookInfo> bookList = new ArrayList<>();
+
+        // SearchTaskのインスタンスを作成
+        SearchTask task = new SearchTask();
+        task.setListener(new SearchTask.Listener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent(ResultActivity.this, BookInfoActivity.class);
-                startActivity(intent);
+            public void onSuccess(String result) {
+                Log.d("ResultActivity", "サーバーからのレスポンス: " + result);
+
+                try {
+                    // JSONデータを解析
+                    JSONArray jsonArray = new JSONArray(result);
+                    Log.d("ResultActivity", "JSONデータの数: " + jsonArray.length());
+
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        JSONObject jsonObject = jsonArray.getJSONObject(i);
+                        Log.d("ResultActivity", "JSONオブジェクト: " + jsonObject.toString());
+
+                        // JSONからBookInfoオブジェクトを作成
+                        BookInfo bookInfo = new BookInfo();
+                        bookInfo.ID = jsonObject.getInt("ID");
+                        bookInfo.title = jsonObject.getString("TITLE");
+                        bookInfo.author = jsonObject.getString("AUTHOR");
+                        bookInfo.publisher = jsonObject.getString("PUBLISHER");
+                        bookInfo.price = jsonObject.getInt("PRICE");
+                        bookInfo.isbn = jsonObject.getString("ISBN");
+
+                        // データリストに追加
+                        bookList.add(bookInfo);
+                        listData.add(new HashMap<String, String>() {{
+                            put("title", bookInfo.getTitle());
+                            put("author", bookInfo.getAuthor());
+                        }});
+                    }
+
+                    Log.d("ResultActivity", "bookListのサイズ: " + bookList.size());
+                    Log.d("ResultActivity", "listDataのサイズ: " + listData.size());
+
+                    // ListViewにデータをバインド
+                    SimpleAdapter adapter = new SimpleAdapter(
+                            ResultActivity.this,
+                            listData,
+                            android.R.layout.simple_list_item_2,
+                            new String[]{"title", "author"},
+                            new int[]{android.R.id.text1, android.R.id.text2}
+                    );
+                    listView.setAdapter(adapter);
+
+                    Log.d("ResultActivity", "アダプタのアイテム数: " + listView.getAdapter().getCount());
+
+                    // ListViewのアイテムクリック時の処理
+                    listView.setOnItemClickListener((parent, view, position, id) -> {
+                        BookInfo bookInfo = bookList.get(position);
+                        Log.d("ResultActivity", "クリックされた本: " + bookInfo.toString());
+
+                        // BookInfoActivityに遷移
+                        Intent intent = new Intent(ResultActivity.this, BookInfoActivity.class);
+                        intent.putExtra("title", bookInfo.getTitle());
+                        intent.putExtra("author", bookInfo.getAuthor());
+                        intent.putExtra("publisher", bookInfo.getPublisher());
+                        intent.putExtra("price", bookInfo.getPrice());
+                        intent.putExtra("isbn", bookInfo.getIsbn());
+                        startActivity(intent);
+                    });
+                } catch (JSONException e) {
+                    Log.e("ResultActivity", "JSON解析エラー: ", e);
+                }
             }
         });
-    }
+        if (emptyText != null) {
+            listView.setEmptyView(emptyText); // データがない場合の表示を設定
+        }
 
-    private ArrayList<HashMap<String, String>> loadSearchResults() {
-        ArrayList<HashMap<String, String>> searchResults = new ArrayList<>();
-
-        // 例：検索結果データ（固定データ）
-        searchResults.add(new HashMap<String, String>() {{
-            put("title", "Androidの基本");
-            put("author", "立命太郎");
-        }});
-        searchResults.add(new HashMap<String, String>() {{
-            put("title", "Androidの応用");
-            put("author", "立命次郎");
-        }});
-        searchResults.add(new HashMap<String, String>() {{
-            put("title", "Androidのススメ");
-            put("author", "立命三郎");
-        }});
-
-        // 実際の検索結果取得処理に置き換え可能
-        return searchResults;
+        // サーバー通信を実行
+        task.execute(query);
     }
 
 
-    private ArrayList<HashMap<String, String>> loadBookmarkedBooks() {
-        ArrayList<HashMap<String, String>> bookmarkedList = new ArrayList<>();
 
-        // ブックマークデータを取得してリストに追加
-        // 例としてデモデータを追加
-        bookmarkedList.add(new HashMap<String, String>() {{
-            put("title", "ブックマークされたAndroid入門");
-            put("author", "立命一郎");
-        }});
-        bookmarkedList.add(new HashMap<String, String>() {{
-            put("title", "ブックマークされたAndroidマスター");
-            put("author", "立命四郎");
-        }});
-
-        return bookmarkedList;
-    }
 }

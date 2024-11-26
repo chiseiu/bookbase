@@ -1,14 +1,22 @@
 package com.example.bookbase;
 
 public class Book {
-    private String title;
-    private String author;
-    private String publisher;
-    private double price;
-    private String isbn;
+    protected String title;
+    protected String author;
+    protected String publisher;
+    protected int price;
+    protected String isbn;
+
+    public Book() {
+        this.title = "Unknown Title";
+        this.author = "Unknown Author";
+        this.publisher = "Unknown Publisher";
+        this.price = 0;
+        this.isbn = "Unknown ISBN";
+    }
 
     // コンストラクタ
-    public Book(String title, String author, String publisher, double price, String isbn) {
+    public Book(String title, String author, String publisher, int price, String isbn) {
         this.title = title;
         this.author = author;
         this.publisher = publisher;
@@ -20,21 +28,39 @@ public class Book {
     public String getTitle() {
         return title;
     }
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
 
     public String getAuthor() {
         return author;
+    }
+    public void setAuthor(String author) {
+        this.author = author;
     }
 
     public String getPublisher() {
         return publisher;
     }
+    public void setPublisher(String publisher) {
+        this.publisher = publisher;
+    }
 
-    public double getPrice() {
+    public int getPrice() {
         return price;
+    }
+
+    public void setPrice(int price) {
+        this.price = price;
     }
 
     public String getIsbn() {
         return isbn;
+    }
+
+    public void setIsbn(String isbn) {
+        this.isbn = isbn;
     }
 
     // equals メソッド - ISBN での一意性を判定

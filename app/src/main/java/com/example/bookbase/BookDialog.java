@@ -29,5 +29,13 @@ public class BookDialog {
         builder.setPositiveButton("OK", null);
         builder.show();
     }
+
+    public static void showSuccessDialog(Context context, String message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("成功");
+        builder.setMessage(message);
+        builder.setPositiveButton("OK", null);
+        builder.show();
+    }
 }
 

@@ -84,7 +84,7 @@ public class BookManager {
                         obj.getString("TITLE"),
                         obj.getString("AUTHOR"),
                         obj.getString("PUBLISHER"),
-                        obj.getDouble("PRICE"),
+                        obj.getInt("PRICE"),
                         obj.getString("ISBN")
                 ));
             }

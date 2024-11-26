@@ -60,6 +60,7 @@ public class AddBookActivity extends AppCompatActivity {
                 runOnUiThread(() -> BookDialog.showBookConfirmationDialog(this, book, () -> {
                     // ユーザーが「はい」を選んだ場合に書籍を追加
                     BookManager.addBookToUserLibrary(this, book);
+                    BookDialog.showSuccessDialog(this, "書籍を追加しました！");
                 }));
             } catch (Exception e) {
                 // エラーをキャッチしてダイアログで表示
