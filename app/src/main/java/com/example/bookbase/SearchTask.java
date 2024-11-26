@@ -97,7 +97,7 @@ public class SearchTask extends AsyncTask<String, Void, List<Book>> {
         }
     }
 
-    // 解析 JSON 响应为书籍列表
+    // 解析JSON結果
     private List<Book> parseJsonResponse(String jsonResponse) throws JSONException {
         List<Book> books = new ArrayList<>();
         JSONArray jsonArray = new JSONArray(jsonResponse);

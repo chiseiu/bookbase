@@ -4,21 +4,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,12 +17,8 @@ import java.util.List;
 
 public class ResultActivity extends AppCompatActivity {
 
-
-
     @Override
-
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_result);
 
@@ -42,13 +29,10 @@ public class ResultActivity extends AppCompatActivity {
         // ListViewと空データ用TextViewを取得
         ListView listView = findViewById(R.id.listView);
         TextView emptyText = findViewById(R.id.emptyText);
+        listView.setEmptyView(emptyText); // データがない場合の表示を設定
 
+        // 書籍情報のリスト
         List<BookInfo> bookInfoList = new ArrayList<>();
-
-
-        // データリストの初期化
-        //final ArrayList<HashMap<String, String>> listData = new ArrayList<>();
-        //final ArrayList<BookInfo> bookList = new ArrayList<>();
 
         // SearchTaskのインスタンスを作成
         SearchTask task = new SearchTask();
@@ -57,9 +41,13 @@ public class ResultActivity extends AppCompatActivity {
             public void onSuccess(List<Book> result) {
                 Log.d("ResultActivity", "Success: " + result.size() + " books");
 
+                // 結果をBookInfoリストに変換
                 bookInfoList.clear();
+                List<HashMap<String, String>> listData = new ArrayList<>();
                 for (int i = 0; i < result.size(); i++) {
                     Book book = result.get(i);
+
+                    // BookをBookInfoに変換してリストに追加
                     BookInfo bookInfo = new BookInfo();
                     bookInfo.setId(i + 1);
                     bookInfo.setTitle(book.getTitle());
@@ -68,16 +56,15 @@ public class ResultActivity extends AppCompatActivity {
                     bookInfo.setPrice(book.getPrice());
                     bookInfo.setIsbn(book.getIsbn());
                     bookInfoList.add(bookInfo);
-                }
-                // 更新 ListView
-                List<HashMap<String, String>> listData = new ArrayList<>();
-                for (Book book : result) {
+
+                    // ListView用のデータ作成
                     HashMap<String, String> map = new HashMap<>();
                     map.put("title", book.getTitle());
                     map.put("author", book.getAuthor());
                     listData.add(map);
                 }
 
+                // ListViewのアダプターを設定
                 SimpleAdapter adapter = new SimpleAdapter(
                         ResultActivity.this,
                         listData,
@@ -85,13 +72,13 @@ public class ResultActivity extends AppCompatActivity {
                         new String[]{"title", "author"},
                         new int[]{android.R.id.text1, android.R.id.text2}
                 );
-
-                ListView listView = findViewById(R.id.listView);
                 listView.setAdapter(adapter);
 
+                // リスト項目のクリックイベントを設定
                 listView.setOnItemClickListener((parent, view, position, id) -> {
                     BookInfo selectedBookInfo = bookInfoList.get(position);
 
+                    // 書籍情報をBookInfoActivityに渡す
                     Intent detailIntent = new Intent(ResultActivity.this, BookInfoActivity.class);
                     detailIntent.putExtra("id", selectedBookInfo.getId());
                     detailIntent.putExtra("title", selectedBookInfo.getTitle());
@@ -99,7 +86,6 @@ public class ResultActivity extends AppCompatActivity {
                     detailIntent.putExtra("publisher", selectedBookInfo.getPublisher());
                     detailIntent.putExtra("price", selectedBookInfo.getPrice());
                     detailIntent.putExtra("isbn", selectedBookInfo.getIsbn());
-
                     startActivity(detailIntent);
                 });
             }
@@ -111,16 +97,7 @@ public class ResultActivity extends AppCompatActivity {
             }
         });
 
-        //task.execute("Android"); // 测试查询
-
-        if (emptyText != null) {
-            listView.setEmptyView(emptyText); // データがない場合の表示を設定
-        }
-
         // サーバー通信を実行
         task.execute(query);
     }
-
-
-
 }
