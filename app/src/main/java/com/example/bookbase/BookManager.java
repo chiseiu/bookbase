@@ -4,47 +4,47 @@ import android.content.Context;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.io.FileOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.Scanner;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class BookManager {
 
     private static final String USER_LIBRARY_FILE = "user_library.json";
 
-    // 1. ISBN が正しいかどうかをチェックする（例として、ISBNが10または13桁かどうかを確認）
+    // ISBN が正しいかどうかをチェックする
     public static boolean isValidIsbn(String isbn) {
         return isbn != null && (isbn.length() == 9 || isbn.length() == 10 || isbn.length() == 13) && isbn.matches("\\d+"); // 10桁または13桁の数字
     }
 
-    // 2. default_book.json に ISBN が存在するかどうか確認する
-    public static boolean isInDefaultBooks(Context context, String isbn) {
-        try {
-            String json = loadJSONFromAsset(context, "default_book.json");
-            JSONArray jsonArray = new JSONArray(json);
-            for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject obj = jsonArray.getJSONObject(i);
-                if (obj.getString("ISBN").equals(isbn)) {
-                    return true;
-                }
+    public static boolean isBookInLibrary(Context context, String isbn) {
+
+        // チェック：ユーザーの書籍ライブラリ
+        List<Book> userLibrary = BookManager.loadUserLibrary(context);
+        for (Book book : userLibrary) {
+            if (book.getIsbn().equals(isbn)) {
+                return true;
             }
-        } catch (JSONException | IOException e) {
-            e.printStackTrace();
         }
+
         return false;
     }
 
 
+
     public static void addBookToUserLibrary(Context context, Book book) {
         List<Book> userLibrary = loadUserLibrary(context);
-        userLibrary.add(book);
-        saveUserLibrary(context, userLibrary);
+        if(!isBookInLibrary(context, book.isbn)){
+            userLibrary.add(book);
+            saveUserLibrary(context, userLibrary);
+        }
     }
 
     // ユーザーライブラリをファイルに保存する
@@ -77,17 +77,9 @@ public class BookManager {
             byte[] buffer = new byte[fis.available()];
             fis.read(buffer);
             String json = new String(buffer, "UTF-8");
-            JSONArray jsonArray = new JSONArray(json);
-            for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject obj = jsonArray.getJSONObject(i);
-                books.add(new Book(
-                        obj.getString("TITLE"),
-                        obj.getString("AUTHOR"),
-                        obj.getString("PUBLISHER"),
-                        obj.getInt("PRICE"),
-                        obj.getString("ISBN")
-                ));
-            }
+
+            // 共通のJSON解析メソッドを利用
+            books = parseJsonToBooks(json);
         } catch (IOException | JSONException e) {
             e.printStackTrace();
         }
@@ -95,13 +87,42 @@ public class BookManager {
     }
 
 
-    // アセットフォルダからJSONを読み込む
-    private static String loadJSONFromAsset(Context context, String fileName) throws IOException {
-        try (FileInputStream is = context.openFileInput(fileName)) {
-            int size = is.available();
-            byte[] buffer = new byte[size];
-            is.read(buffer);
-            return new String(buffer, "UTF-8");
+
+    // JSON文字列をBookリストに変換する共通メソッド
+    public static List<Book> parseJsonToBooks(String json) throws JSONException {
+        List<Book> books = new ArrayList<>();
+        JSONArray jsonArray = new JSONArray(json);
+
+        for (int i = 0; i < jsonArray.length(); i++) {
+            JSONObject jsonObject = jsonArray.getJSONObject(i);
+
+            Book book = new Book();
+            book.setTitle(jsonObject.getString("TITLE"));
+            book.setAuthor(jsonObject.getString("AUTHOR"));
+            book.setPublisher(jsonObject.getString("PUBLISHER"));
+            book.setPrice(jsonObject.getInt("PRICE"));
+            book.setIsbn(jsonObject.getString("ISBN"));
+
+            books.add(book);
         }
+
+        return books;
+    }
+
+
+    public static List<Book> mergeAndRemoveDuplicates(List<Book> list1, List<Book> list2) {
+        Set<Book> mergedSet = new HashSet<>(list1); // リスト1をSetに追加
+        mergedSet.addAll(list2);                   // リスト2をSetに追加（重複自動削除）
+        return new ArrayList<>(mergedSet);         // SetをListに変換して返す
+    }
+
+    public static List<Book> searchByTitleKeyword(List<Book> books, String keyword) {
+        return books.stream()
+                .filter(book -> book.getTitle().toLowerCase().contains(keyword.toLowerCase())) // 大文字小文字を無視して検索
+                .collect(Collectors.toList());
     }
 }
+
+
+
+

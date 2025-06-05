@@ -1,61 +1,90 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".BookInfoActivity">
+    android:padding="16dp">
 
-    <TextView
-        android:id="@+id/titleView"
-        android:layout_width="320dp"
-        android:layout_height="40dp"
-        android:layout_marginStart="44dp"
-        android:layout_marginTop="52dp"
-        android:layout_marginEnd="44dp"
-        android:text=" タイトル"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/authorView"
-        android:layout_width="320dp"
-        android:layout_height="40dp"
-        android:layout_marginTop="20dp"
-        android:text="著者"
-        app:layout_constraintTop_toBottomOf="@id/titleView"
+    <!-- 書籍カバー画像 -->
+    <ImageView
+        android:id="@+id/bookCoverImage"
+        android:layout_width="150dp"
+        android:layout_height="200dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="32dp"
+        android:background="#CCCCCC"
+        android:contentDescription="書籍カバー"
+        android:scaleType="centerCrop"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <TextView
-        android:id="@+id/publisherView"
-        android:layout_width="320dp"
-        android:layout_height="40dp"
-        android:layout_marginTop="20dp"
-        android:text="出版社"
-        app:layout_constraintTop_toBottomOf="@id/authorView"
+    <!-- 情報カード -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/infoCard"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginTop="16dp"
+        android:padding="16dp"
+        app:cardElevation="4dp"
+        app:cardCornerRadius="8dp"
+        app:layout_constraintTop_toBottomOf="@id/bookCoverImage"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <TextView
-        android:id="@+id/priceView"
-        android:layout_width="320dp"
-        android:layout_height="40dp"
-        android:layout_marginTop="20dp"
-        android:text="価格"
-        app:layout_constraintTop_toBottomOf="@id/publisherView"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/isbnView"
-        android:layout_width="320dp"
-        android:layout_height="40dp"
-        android:layout_marginTop="20dp"
-        android:text="ISBN"
-        app:layout_constraintTop_toBottomOf="@id/priceView"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+            <TextView
+                android:id="@+id/titleView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="タイトル"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#000000"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/authorView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="著者"
+                android:textSize="16sp"
+                android:textColor="#555555"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:id="@+id/publisherView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="出版社"
+                android:textSize="16sp"
+                android:textColor="#555555"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:id="@+id/priceView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="価格"
+                android:textSize="16sp"
+                android:textColor="#555555"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:id="@+id/isbnView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="ISBN"
+                android:textSize="16sp"
+                android:textColor="#555555" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -47,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void onAllBookButtonClicked(View view) {
         Intent intent = new Intent(this, ResultActivity.class);
-        intent.putExtra("QUERY", "");
+        intent.putExtra("QUERY", " ");
         startActivity(intent);
     }
 

@@ -8,10 +8,12 @@ import java.util.Scanner;
 
 public class OpenBDManager {
 
+
     private static final String API_URL = "https://api.openbd.jp/v1/get?isbn=";
 
+
     public static Book fetchBookFromOpenBD(String isbn) throws Exception {
-        URL url = new URL(API_URL + isbn);
+        URL url = new URL(API_URL + isbn + "&amp;amp;amp;amp;amp;amp;pretty");
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
         connection.connect();

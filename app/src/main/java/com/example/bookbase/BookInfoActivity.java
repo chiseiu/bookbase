@@ -2,16 +2,31 @@ package com.example.bookbase;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import com.squareup.picasso.Picasso;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.IOException;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class BookInfoActivity extends AppCompatActivity {
-
+    ImageView bookCoverImage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +52,7 @@ public class BookInfoActivity extends AppCompatActivity {
         int price = intent.getIntExtra("price", 0);
         String isbn = intent.getStringExtra("isbn");
 
+
         // ユーザインタフェースコンポーネントへの参照を取得
         TextView titleView = findViewById(R.id.titleView);
         TextView authorView = findViewById(R.id.authorView);
@@ -50,5 +66,9 @@ public class BookInfoActivity extends AppCompatActivity {
         publisherView.setText(publisher);
         priceView.setText(Integer.toString(price));
         isbnView.setText(isbn);
+
+
     }
+
+
 }

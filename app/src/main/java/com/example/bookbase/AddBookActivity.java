@@ -44,7 +44,7 @@ public class AddBookActivity extends AppCompatActivity {
 
 
         // 書籍がすでに存在するか確認
-        if (BookChecker.isBookInLibrary(this, isbn)) {
+        if (BookManager.isBookInLibrary(this, isbn)) {
             // すでに存在する場合は何もせず終了
             BookDialog.showErrorDialog(this, "書籍がすでに存在します");
             return;

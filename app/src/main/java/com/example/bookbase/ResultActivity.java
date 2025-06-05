@@ -28,14 +28,16 @@ public class ResultActivity extends AppCompatActivity {
 
         // ListViewと空データ用TextViewを取得
         ListView listView = findViewById(R.id.listView);
+
         TextView emptyText = findViewById(R.id.emptyText);
         listView.setEmptyView(emptyText); // データがない場合の表示を設定
 
+        Log.d("ResultActivity", "ListView に emptyView が設定されました");
         // 書籍情報のリスト
         List<BookInfo> bookInfoList = new ArrayList<>();
 
         // SearchTaskのインスタンスを作成
-        SearchTask task = new SearchTask();
+        SearchTask task = new SearchTask(this);
         task.setListener(new SearchTask.Listener() {
             @Override
             public void onSuccess(List<Book> result) {

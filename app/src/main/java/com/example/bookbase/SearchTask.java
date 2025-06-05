@@ -1,6 +1,10 @@
 package com.example.bookbase;
-
 import android.content.Context;
+
+import static com.example.bookbase.BookManager.loadUserLibrary;
+import static com.example.bookbase.BookManager.searchByTitleKeyword;
+
+
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -18,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SearchTask extends AsyncTask<String, Void, List<Book>> {
+    private Context context;
     private Listener listener;
 
     public interface Listener {
@@ -28,36 +33,40 @@ public class SearchTask extends AsyncTask<String, Void, List<Book>> {
     public void setListener(Listener listener) {
         this.listener = listener;
     }
+    public SearchTask(Context context) {
+        this.context = context.getApplicationContext();
+    }
+
 
     @Override
     protected List<Book> doInBackground(String... params) {
         List<Book> books = new ArrayList<>();
+        List<Book> web_books = new ArrayList<>();
         String query = params[0].trim();
         HttpURLConnection urlConnection = null;
 
         try {
-            // 1. 设置 URL
+
             URL url = new URL("http://172.23.100.41/cgi-bin/saproglab/booksearch_json.py");
             urlConnection = (HttpURLConnection) url.openConnection();
 
-            // 2. 设置 POST 请求属性
             urlConnection.setRequestMethod("POST");
             urlConnection.setDoOutput(true);
             urlConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
 
-            // 3. 发送请求
+
             String body = "query=" + query;
-            Log.d("SearchTask", "发送的查询: " + body);
+            Log.d("SearchTask", "sent: " + body);
 
             try (OutputStream out = urlConnection.getOutputStream()) {
                 out.write(body.getBytes("UTF-8"));
                 out.flush();
             }
 
-            // 4. 检查响应代码
+
             int responseCode = urlConnection.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) {
-                // 5. 读取响应
+
                 try (InputStream in = urlConnection.getInputStream();
                      BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"))) {
                     StringBuilder responseBuilder = new StringBuilder();
@@ -69,7 +78,7 @@ public class SearchTask extends AsyncTask<String, Void, List<Book>> {
                     // 6. 解析 JSON 响应
                     String jsonResponse = responseBuilder.toString();
                     Log.d("SearchTask", "响应数据: " + jsonResponse);
-                    books = parseJsonResponse(jsonResponse);
+                    web_books = parseJsonResponse(jsonResponse);
                 }
             } else {
                 Log.e("SearchTask", "HTTP 错误: 响应代码 " + responseCode);
@@ -82,6 +91,12 @@ public class SearchTask extends AsyncTask<String, Void, List<Book>> {
                 urlConnection.disconnect();
             }
         }
+
+
+
+        List<Book> userLibrary = BookManager.loadUserLibrary(context);
+        List<Book> local_result = searchByTitleKeyword(userLibrary,query);
+        books = BookManager.mergeAndRemoveDuplicates(web_books,local_result);
 
         return books;
     }
@@ -118,3 +133,5 @@ public class SearchTask extends AsyncTask<String, Void, List<Book>> {
         return books;
     }
 }
+
+
